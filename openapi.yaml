@@ -1,0 +1,197 @@
+openapi: "3.0.0"
+info:
+    title: Prepare Application API
+    version: 0.0.1
+    description: |
+        API providing title information to prepare an application to change the register.
+
+        NOTE: this API definition assumes that **the user is a conveyancer** acting on behalf of an applicant to change the register
+
+paths:
+  /applications:
+    post:
+      description: Create a new application.
+      requestBody:
+        description: Application to prepare.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationRequest'
+      responses:
+        '201':
+          description: An active application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+
+
+  /applications/{application_id}:
+    get:
+      description: Returns an application with the specified Application ID.
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        '200':
+          description: An active application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+
+
+components:
+  schemas:
+    Address:
+      required:
+        - property_name_number
+        - postcode
+      properties:
+        property_name_number:
+          type: string
+          example: "2"
+        street_name:
+          type: string
+          example: William Prance Road
+        town_city:
+          type: string
+          example: Plymouth
+        county:
+          type: string
+          example: Devon
+        country: 
+          type: string
+          enum:
+            - England
+            - Wales
+        postcode:
+          type: string
+          example: PL6 5WS
+          pattern: ([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})
+
+    Applicant:
+      allOf:
+        - $ref: '#/components/schemas/ApplicantType' 
+      type: object
+      required: 
+          - name
+      properties:
+        name:
+          type: string
+          description: The full name of the individual, registered company or trustee of a charity. 
+        date_of_birth:
+          type: string
+          description: The applicant's date of birth, if they are an individual.
+          format: date
+        company_number:
+          type: string
+          description: The applicant's Companies House registration number, if they are a registered company.
+          format: '\d{8}'
+
+    ApplicantType:
+      type: object
+      required:
+        - applicant_type
+      properties:
+        applicant_type:
+          type: string
+          description: The type of applicant.
+          enum:
+            - Private individual
+            - Registered Company
+            - Overseas Registered Company
+            - Trustee of Charity
+
+    ApplicationId:
+      type: object
+      required:
+        - application_id
+      properties:
+        application_id:
+          type: integer
+          description: The unique ID of an application.
+          example: 1
+
+    ApplicationResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ApplicationRequest'
+        - $ref: '#/components/schemas/ApplicationId'
+
+    ApplicationRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ApplicationType'
+      required: 
+        - title_number
+        - confirmation_of-identity
+      properties:
+        applicant:
+          $ref: '#/components/schemas/Applicant'
+        confirmation_of_identity:
+          $ref: '#/components/schemas/ConfirmationOfIdentity'
+        disclosable_overriding_interests:
+          type: boolean
+          description: This application relates to a registrable disposition and disclosable overriding interests affect the registered estate.
+        title_number:
+          type: string
+          example: ABC123
+          description: The title number that the application affects.
+          pattern: ^([A-Z]{0,3}[1-9][0-9]{0,5}|[0-9]{1,6}[ZT])$
+
+    ApplicationType:
+      type: object
+      properties:
+        application_type:
+          type: string
+          description: The type of application being created.
+          enum:
+            - Transfer of Whole
+            - Transfer of Part
+    
+    ConfirmationOfIdentity:
+      type: array
+      description: If you are sending an application to register a transfer, lease or charge, for each party to each disposition that is to be registered, provide the details of the conveyancer who represented them.
+      items: 
+        type: object
+        required: 
+          - party_name
+          - conveyancer
+        properties:
+          party_name:
+            type: string
+            description: The name of the transferror, landlord, transferee, tenant, borrower or lender.
+          conveyancer:
+            description: The conveyancer representing the named party. 
+            $ref: '#/components/schemas/Conveyancer'
+
+    Conveyancer:
+      type: object
+      required:
+        - name
+        - address
+        - reference
+      properties:
+        name:
+          type: string
+          description: Conveyancer's name
+          example: Conveyancing LTD
+        address:
+          $ref: '#/components/schemas/Address'
+          description: Conveyancer's address
+        reference:
+          type: string
+          example: "123456"
+          description: Conveyancer's case reference
+
+
+  parameters:
+    ApplicationId:
+      name: application_id
+      in: path
+      required: true
+      description: The unique ID of an application.
+      schema:
+        type: integer
+        example: 1
