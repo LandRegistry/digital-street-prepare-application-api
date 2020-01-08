@@ -557,7 +557,7 @@ components:
           maxLength: 9
           type: string
           description: The unique reference number that refers to this title.
-          example: AGL117262
+          example: AGL123456
         tenure:
           $ref: '#/components/schemas/Tenure'
         class_of_title:
