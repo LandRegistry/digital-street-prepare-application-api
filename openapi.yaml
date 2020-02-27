@@ -9,6 +9,26 @@ info:
   
 components:
   schemas:
+    ApplicationReference:
+      type: string
+      description: |
+        The Application Barcode Reference (ABR) of the latest application to make a substantive change to the register
+        for this title.
+      example: BADD31A
+  
+    ApplicationRequest:
+      type: object
+      required:
+      - title_number 
+      - application_types
+      properties:
+        application_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationType'
+        title_number:
+          $ref: '#/components/schemas/TitleNumber'
+ 
     ApplicationType:
       type: string
       description: The type of application
@@ -93,46 +113,6 @@ components:
         - part
         - unit
     
-    ApplicationRequest:
-      type: object
-      required:
-      - title_number 
-      - application_types
-      properties:
-        application_types:
-          type: array
-          items:
-            $ref: '#/components/schemas/ApplicationType'
-        title_number:
-          $ref: '#/components/schemas/TitleNumber'
-        
-    TransferRequest:
-      allOf:
-        - $ref: '#/components/schemas/ApplicationRequest'
-      type: object
-      description: A request to draft a new application to update the register.
-      properties:
-        execution:
-          $ref: '#/components/schemas/Execution'
-        transfer_date:
-          type: string
-          description: The date on which the entry was added to the register.
-          format: date
-        transferrees:
-          type: array
-          items:
-            $ref: '#/components/schemas/Proprietor'
-        transferrors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Proprietor'
-        sdlt_transaction_ref:
-          type: string
-          description: The HMRC-provided transaction reference for the completed SDLT payment 
-        consent_to_discharge:
-          type: boolean
-          description: Assurance that the lender has consented to remove the charge
-
     EstateInterest:
       type: string
       description: |-
@@ -216,6 +196,7 @@ components:
     Execution:
       type: boolean
       description: Assurance that the deed has been executed
+    
     Language:
       type: string
       description: |
@@ -225,6 +206,65 @@ components:
       enum:
         - eng
         - cym
+    
+    NoticeOfDeath:
+      type: object
+      required:
+        - deceased
+      properties:
+        deceased:
+          $ref: '#/components/schemas/PrivateIndividual'
+        evidence:
+          oneOf:
+            - $ref: '#/components/schemas/DeathCertificate' 
+            - $ref: '#/components/schemas/ProbateOrLetter' 
+            - $ref: '#/components/schemas/AssuranceOfDeath' 
+          discriminator:
+            propertyName: evidence_type
+            mapping:
+              DeathCertificate: '#/components/schemas/DeathCertificate'
+              ProbateOrLetter: '#/components/schemas/ProbateOrLetter'
+              AssuranceOfDeath: '#/components/schemas/AssuranceOfDeath'
+
+    DeathCertificate:
+      type: object
+      required: 
+        - evidence_type
+        - certificate
+      properties:
+        evidence_type: 
+          type: string
+        certificate:
+          type: string
+          format: byte
+          description: An official or certified copy of a death certificate in base64-encoded file format
+    
+    ProbateOrLetter:
+      type: object
+      required: 
+        - evidence_type
+        - probate_or_letter
+      properties:
+        evidence_type:
+          type: string
+        probate_or_letter:
+          type: string
+          format: byte
+          description: An official or certified copy of probate or letter of administration in base64-encoded file format
+    
+    AssuranceOfDeath:
+      type: object
+      required: 
+        - evidence_type
+        - date_of_death
+      properties:
+        evidence_type:
+          type: string
+        date_of_death:
+          type: string
+          format: date
+          description: The date of death. By providing this field, you are assuring the death. **NOTE - This field only be provided by conveyancers** 
+    
     Property:
       type: object
       description: Represents a property on the title.
@@ -544,6 +584,17 @@ components:
             cym: Atodlen rhent-daliadau cofrestredig
       description: |
         Encapsulates information about a schedule entry.
+        
+    SubmitApplicationResponse:
+      type: object
+      required:
+        - application_reference
+      allOf:
+        - $ref: '#/components/schemas/ValidationSuccessResponse'
+      properties:
+        application_reference:
+          $ref: '#/components/schemas/ApplicationReference'
+
     SubRegister:
       type: string
       description: |
@@ -586,6 +637,7 @@ components:
         - status
         - title_number
         - caution_against_first_registration
+        - pending_applications
         - properties
         - proprietors
       type: object
@@ -603,12 +655,12 @@ components:
           description: |
             The date on which the current version of the register was published.
           format: date
+        pending_applications:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationReference'
         application_reference:
-          type: string
-          description: |
-            The Application Barcode Reference (ABR) of the latest application to make a substantive change to the register
-            for this title.
-          example: BADD31A
+          $ref: '#/components/schemas/ApplicationReference'
         application_timestamp:
           type: string
           description: |
@@ -708,48 +760,120 @@ components:
       type: string
       description: The unique identifier for the title's topic. This allows the requestor to subscribe to any changes on the title.
       example: arn:aws:sns:us-west-2:123456789012:my-topic
-      
+    
+    TransferRequest:
+      allOf:
+        - $ref: '#/components/schemas/ApplicationRequest'
+      type: object
+      description: A request to draft a new application to update the register.
+      properties:
+        additional_provisions:
+          description: any required or permitted statement, certificate or application and any agreed covenants, declarations and so on.
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: number
+              - type: integer
+              - type: boolean
+              - type: array
+              - type: object
+        consideration:
+          type: object
+          required:
+            - consideration_type
+          properties:
+            consideration_type:
+              type: string
+              enum:
+               - Transfer for value
+               - Transfer not for value
+               - Other receipt
+            currency:
+              type: string
+              enum:
+                - GBP
+                - EUR
+            amount:
+              type: integer
+              format: int32
+              example: 150000
+            other_receipt:
+              type: string
+              
+        execution:
+          $ref: '#/components/schemas/Execution'
+        transfer_date:
+          type: string
+          description: The date on which the entry was added to the register.
+          format: date
+        transferrees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Proprietor'
+        transferrors:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/PrivateIndividual'
+              - $ref: '#/components/schemas/Organisation'
+              - type: object
+                required:
+                  - notice_of_death
+                  - trustee
+                properties:
+                  notice_of_death:
+                    $ref: '#/components/schemas/NoticeOfDeath' 
+                  trustee:
+                    $ref: '#/components/schemas/PrivateIndividual'
+        sdlt_transaction_ref:
+          type: string
+          example: ABCD1234
+          description: The HMRC-provided transaction reference for the completed SDLT payment 
+        consent_to_discharge:
+          type: boolean
+          description: Assurance that the lender has consented to remove the charge
+  
+    
     ValidationIssue:
       required:
         - message
         - property_name
       type: object
       properties:
-        property_name:
-          type: string
-          description: The name of the property that this issue was raised for.
-          example: title_number
         message:
           type: string
           description: A message summarising why this property failed to validate.
           example: A title does not exist for the given title number
+        property_name:
+          type: string
+          description: The name of the property that this issue was raised for.
+          example: title_number
+        value:
+          description: The value of the property that passed validation.
+          example: AGL117262
+          oneOf:
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array
+            - type: object
       description: |
         Represents a single issue encountered while validating a property on a request body.
   
     ValidationResponse:
       type: object
       required:
-        - reference
         - status
       description: The result of a validation check on an application.
       properties:
-        reference:
-          type: string
-          description: |
-            The unique reference for the request.
-          format: uuid
         status:
           maximum: 599
-          minimum: 400
+          minimum: 200
           type: integer
           description: The HTTP status code returned by the server with this response.
           format: int32
-        error_code:
-          type: string
-          description: An error code  that identifies the cause of the error.
-        error_message:
-          type: string
-          description: A human-readable message that provides a summary of the cause of the error.
     
     ValidationSuccess:
       required:
@@ -777,9 +901,17 @@ components:
       allOf:
         - $ref: '#/components/schemas/ValidationResponse'
         - required:
-            - validation_issues
+          - error_code
+          - error_message
+          - validation_issues
           type: object
           properties:
+            error_code:
+              type: string
+              description: An error code  that identifies the cause of the error.
+            error_message:
+              type: string
+              description: A human-readable message that provides a summary of the cause of the error.
             title:
                 $ref: '#/components/schemas/Title'
             validation_successes:
@@ -797,7 +929,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/ValidationResponse'
         - required:
-            - validation_successes
+          - title
+          - validation_successes
           type: object
           properties:
             title:
@@ -806,12 +939,8 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ValidationSuccess'
-            validation_issues:
-              type: array
-              items:
-                $ref: '#/components/schemas/ValidationIssue'
           description: |
-            Returned when a request body contains invalid property values.
+            Returned when a request body contains valid property values.
       
 paths:
   /applications/draft:
@@ -826,13 +955,13 @@ paths:
               $ref: '#/components/schemas/TransferRequest'
       responses:
         '200':
-          description: Summary of the assurances required for an application. A topic for the title already exists.
+          description: The drafted application passed validation. A topic for the title already exists.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationSuccessResponse'
         '201':
-          description: Summary of the assurances required for an application. A topic was created for the title. 
+          description: The drafted application passed validation. A topic was created for the title. 
           content:
             application/json:
               schema:
@@ -843,6 +972,12 @@ paths:
                       topicId:
                         $ref: '#/components/schemas/TopicId'
         '400':
+          description: The drafted application failed validation. A topic was created or already exists for the title.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '404':
           description: An invalid title number was supplied.
           content:
             application/json:
@@ -883,11 +1018,11 @@ paths:
               $ref: '#/components/schemas/TransferRequest'
       responses:
         '202':
-          description: Confirmation that the application passed HMLR validation and there is a change pending on the register. 
+          description: Confirmation that the application passed HMLR validation and has been accepted. 
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationSuccessResponse'
+                $ref: '#/components/schemas/SubmitApplicationResponse'
         '400': 
           description: A summary of the outstanding assurances required for an application.
           content:

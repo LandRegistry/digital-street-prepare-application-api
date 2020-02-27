@@ -1,0 +1,9 @@
+{
+  "title_affected": "AGL117262",
+  "changed_fields": {
+    "pending_applications": {
+      "previous_value": [],
+      "new_value": ["CBEE42B"]
+    }
+  }
+}
