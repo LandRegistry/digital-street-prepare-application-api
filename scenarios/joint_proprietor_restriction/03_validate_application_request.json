@@ -1,14 +1,17 @@
-{
-    "application_types": [
-        "Transfer of Whole",
-        "Creation of New Charge"
-    ],
+[{
+    "title_number": "AGL117262",
+    "application_type": "transfer of whole",
     "consideration": {
         "consideration_type": "Transfer for value",
         "currency": "GBP",
         "amount": 150000
     },
-    "title_number": "AGL117262",
+    "declaration_of_trust": {
+        "trust_type": "tenants in common in equal shares"
+    },
+    "guarantee": {
+        "guarantee_type": "full title guarantee"
+    },
     "transferrees": [
         {
             "proprietor_type": "private individual",
@@ -57,16 +60,48 @@
                     "name": "Mr Paul Andrew Smith",
                     "sequence": 2
                 },
-                "evidence": {
-                    "evidence_type": "DeathCertificate",
-                    "certificate": "bytes" 
-                }
-            },
-            "trustee": {
-                "proprietor_type": "private individual",
-                "name": "Mr Peter Alexander Smith",
-                "sequence": 3
+                "assurance_of_death": true
             }
         }
     ]
-}
+},
+{
+    "title_number": "AGL117262",
+    "application_type": "creation of new charge",
+    "borrowers": [
+        {
+            "proprietor_type": "private individual",
+            "sequence": 1,
+            "name": "Mr Jack Oliver Thompson",
+            "title": "Mr",
+            "fore_names": "Jack Oliver",
+            "surname": "Thompson",
+            "addresses": [
+                {
+                "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                }
+            ]
+        }, 
+        {
+            "proprietor_type": "private individual",
+            "sequence": 2,
+            "name": "Mrs Charlotte Rebecca Thompson",
+            "title": "Mrs",
+            "fore_names": "Charlotte Rebecca",
+            "surname": "Thompson",
+            "addresses": [
+                {
+                "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                }
+            ]
+        }
+    ],
+    "lender": {
+        "proprietor_type": "organisation",
+        "organisation_type": "limited company or public limited company",
+        "name": "Halifax PLC"
+    },
+    "title_guarantee": "full title guarantee"
+}]

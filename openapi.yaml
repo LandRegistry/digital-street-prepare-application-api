@@ -9,35 +9,7 @@ info:
   
 components:
   schemas:
-    ApplicationReference:
-      type: string
-      description: |
-        The Application Barcode Reference (ABR) of the latest application to make a substantive change to the register
-        for this title.
-      example: BADD31A
   
-    ApplicationRequest:
-      type: object
-      required:
-      - title_number 
-      - application_types
-      properties:
-        application_types:
-          type: array
-          items:
-            $ref: '#/components/schemas/ApplicationType'
-        title_number:
-          $ref: '#/components/schemas/TitleNumber'
- 
-    ApplicationType:
-      type: string
-      description: The type of application
-      enum:
-      - Transfer of Whole
-      - Transfer of Part
-      - Removal of Existing Charge
-      - Creation of New Charge
-    
     Address:
       type: object
       description: Represents an address on the register. This may be from an A1 entry or a schedule.
@@ -63,6 +35,86 @@ components:
           type: string
           description: The legacy identifier for the address.
           example: 2019-11-18 12.52.12.555232
+          
+    ApplicationReference:
+      type: string
+      description: |
+        The Application Barcode Reference (ABR) of the latest application to make a substantive change to the register
+        for this title.
+      example: BADD31A
+  
+    ApplicationRequest:
+      type: object
+      required:
+      - title_number
+      properties:
+        title_number:
+          $ref: '#/components/schemas/TitleNumber'
+
+    ApplicationRequestResponse:
+      type: object
+      required: 
+        - application_type
+        - validation_issues
+        - validation_successes
+      properties:
+        application_type:
+          type: string
+          enum:
+            - transfer of whole
+            - creation of new charge
+        validation_issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationIssue'
+        validation_successes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationSuccess'
+        
+    AssuranceOfDeath:
+      type: boolean
+      description: By providing this field, you are assuring the death of the named proprietor. **NOTE - This field only be provided by conveyancers**
+    
+    ChargeRequest:
+      type: object
+      required:
+        - application_type 
+      allOf:
+        - $ref: '#/components/schemas/ApplicationRequest'
+      properties:
+        application_type: 
+          type: string
+          enum:
+            - creation of new charge
+        borrowers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Proprietor'
+        lender:
+          $ref: '#/components/schemas/Organisation'
+        title_guarantee:
+          type: object
+          required:
+            - guarantee_type
+          properties:
+            guarantee_type:
+              type: string
+              enum:
+                - full title guarantee
+                - limited title guarantee
+            modifications:
+              type: string
+        additional_provisions:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: number
+              - type: integer
+              - type: boolean
+              - type: array
+              - type: object
 
     ClassOfTitle:
       type: string
@@ -112,6 +164,23 @@ components:
       enum:
         - part
         - unit
+    
+    DeclarationOfTrust:
+      type: object
+      description: Where the transferee is more than one person, provide a declaration of trust
+      required: 
+        - trust_type
+      properties:
+        trust_type:
+          type: string
+          description: The type of trust 
+          enum:
+            - joint tenants
+            - tenants in common in equal shares
+            - held on trust
+        trust_details:
+          type: string
+          description:  The details of the trust or of the trust instrument. Only required if trust_type is 'held on trust' 
     
     EstateInterest:
       type: string
@@ -211,59 +280,89 @@ components:
       type: object
       required:
         - deceased
+        - assurance_of_death
       properties:
         deceased:
           $ref: '#/components/schemas/PrivateIndividual'
-        evidence:
-          oneOf:
-            - $ref: '#/components/schemas/DeathCertificate' 
-            - $ref: '#/components/schemas/ProbateOrLetter' 
-            - $ref: '#/components/schemas/AssuranceOfDeath' 
-          discriminator:
-            propertyName: evidence_type
-            mapping:
-              DeathCertificate: '#/components/schemas/DeathCertificate'
-              ProbateOrLetter: '#/components/schemas/ProbateOrLetter'
-              AssuranceOfDeath: '#/components/schemas/AssuranceOfDeath'
+        assurance_of_death:
+          $ref: '#/components/schemas/AssuranceOfDeath' 
 
-    DeathCertificate:
-      type: object
-      required: 
-        - evidence_type
-        - certificate
+    Organisation:
+      required:
+        - proprietor_type
+        - name
+        - organisation_type
       properties:
-        evidence_type: 
+        proprietor_type:
           type: string
-        certificate:
+          description: Coarse classification of a proprietor. Used to easily distinguish between a private individual and an organisation.
+          enum:
+            - organisation
+        organisation_type:
           type: string
-          format: byte
-          description: An official or certified copy of a death certificate in base64-encoded file format
-    
-    ProbateOrLetter:
-      type: object
-      required: 
-        - evidence_type
-        - probate_or_letter
-      properties:
-        evidence_type:
+          description: Fine-grained classification of an organisation
+          enum:
+            - co-operative society (company)
+            - co-operative society (corporate body)
+            - community benefit society (company)
+            - community benefit society (corporate body)
+            - corporate body
+            - county council
+            - formerly corporate body incorporated overseas
+            - formerly limited company incorporated overseas
+            - formerly scottish company
+            - formerly unitary authority
+            - housing association co-operative society (company)
+            - housing association co-operative society (corporate body)
+            - housing association community benefit society (company)
+            - housing association community benefit society (corporate body)
+            - housing association registered society (company)
+            - housing association registered society (corporate body)
+            - housing association/society (company)
+            - housing association/society (corporate body)
+            - industrial and provident society (company)
+            - industrial and provident society (corporate body)
+            - limited company or public limited company
+            - limited liability partnership
+            - local authority
+            - official custodian for charities
+            - official custodian for charities (on behalf of trustees)
+            - registered society (company)
+            - registered society (corporate body)
+            - unlimited company
+        sequence:
+          minimum: 1
+          type: integer
+          description: The position of the proprietor within the register.
+          format: int32
+          example: 2
+        name:
           type: string
-        probate_or_letter:
+          description: Name of the organisation. If it's a charity, the charity name will appear here.
+          example: Acme inc.
+        company_registration_number:
+          example: 09579244
+          description: |
+            Number which is a unique identifier assigned to a company when it is registered at companies house.
+            Although the name of the company may change, the company registration number will remain the same.
           type: string
-          format: byte
-          description: An official or certified copy of probate or letter of administration in base64-encoded file format
-    
-    AssuranceOfDeath:
-      type: object
-      required: 
-        - evidence_type
-        - date_of_death
-      properties:
-        evidence_type:
+        location:
           type: string
-        date_of_death:
+          enum:
+            - england or wales
+            - scotland
+            - northern ireland
+            - overseas
+        legacy_name_id:
           type: string
-          format: date
-          description: The date of death. By providing this field, you are assuring the death. **NOTE - This field only be provided by conveyancers** 
+          example: 2019-11-18 12.52.12.555232
+        addresses:
+          type: array
+          description: |
+            A list of addresses relating to the proprietor.
+            May be the same address as other proprietors present on the title.
+          items:
+            $ref: '#/components/schemas/ProprietorAddress'
     
     Property:
       type: object
@@ -372,83 +471,6 @@ components:
           example: 2019-11-18 12.52.12.555232
         addresses:
           type: array
-          items:
-            $ref: '#/components/schemas/ProprietorAddress'
-    Organisation:
-      required:
-        - proprietor_type
-        - name
-        - organisation_type
-        - sequence
-      properties:
-        proprietor_type:
-          type: string
-          description: Coarse classification of a proprietor. Used to easily distinguish between a private individual and an organisation.
-          enum:
-            - organisation
-        organisation_type:
-          type: string
-          description: Fine-grained classification of an organisation
-          enum:
-            - co-operative society (company)
-            - co-operative society (corporate body)
-            - community benefit society (company)
-            - community benefit society (corporate body)
-            - corporate body
-            - county council
-            - formerly corporate body incorporated overseas
-            - formerly limited company incorporated overseas
-            - formerly scottish company
-            - formerly unitary authority
-            - housing association co-operative society (company)
-            - housing association co-operative society (corporate body)
-            - housing association community benefit society (company)
-            - housing association community benefit society (corporate body)
-            - housing association registered society (company)
-            - housing association registered society (corporate body)
-            - housing association/society (company)
-            - housing association/society (corporate body)
-            - industrial and provident society (company)
-            - industrial and provident society (corporate body)
-            - limited company or public limited company
-            - limited liability partnership
-            - local authority
-            - official custodian for charities
-            - official custodian for charities (on behalf of trustees)
-            - registered society (company)
-            - registered society (corporate body)
-            - unlimited company
-        sequence:
-          minimum: 1
-          type: integer
-          description: The position of the proprietor within the register.
-          format: int32
-          example: 2
-        name:
-          type: string
-          description: Name of the organisation. If it's a charity, the charity name will appear here.
-          example: Acme inc.
-        company_registration_number:
-          example: 09579244
-          description: |
-            Number which is a unique identifier assigned to a company when it is registered at companies house.
-            Although the name of the company may change, the company registration number will remain the same.
-          type: string
-        location:
-          type: string
-          enum:
-            - england or wales
-            - scotland
-            - northern ireland
-            - overseas
-        legacy_name_id:
-          type: string
-          example: 2019-11-18 12.52.12.555232
-        addresses:
-          type: array
-          description: |
-            A list of addresses relating to the proprietor.
-            May be the same address as other proprietors present on the title.
           items:
             $ref: '#/components/schemas/ProprietorAddress'
     RegisterEntry:
@@ -664,8 +686,7 @@ components:
         application_timestamp:
           type: string
           description: |
-            The date and time that the latest application to make a substantive change to the register for this title was
-            submitted.
+            The date and time that the latest application to make a substantive change to the register for this title was submitted.
           format: date-time
         welsh:
           type: boolean
@@ -762,11 +783,17 @@ components:
       example: arn:aws:sns:us-west-2:123456789012:my-topic
     
     TransferRequest:
+      type: object
       allOf:
         - $ref: '#/components/schemas/ApplicationRequest'
-      type: object
       description: A request to draft a new application to update the register.
+      required:
+        - application_type
       properties:
+        application_type: 
+          type: string
+          enum:
+            - transfer of whole
         additional_provisions:
           description: any required or permitted statement, certificate or application and any agreed covenants, declarations and so on.
           type: array
@@ -800,9 +827,28 @@ components:
               example: 150000
             other_receipt:
               type: string
-              
+        
+        declaration_of_trust:
+          $ref: '#/components/schemas/DeclarationOfTrust'
+
         execution:
           $ref: '#/components/schemas/Execution'
+
+        guarantee:
+          type: object
+          description: The type of guarantee provided by the transferor(s)
+          required:
+            - guarantee_type
+          properties:
+            guarantee_type:
+              type: string
+              enum: 
+                - full title guarantee
+                - limited title guarantee
+            modifications:
+              type: string
+              description: "Any modifications on the title guarantee."
+          
         transfer_date:
           type: string
           description: The date on which the entry was added to the register.
@@ -834,13 +880,16 @@ components:
           type: boolean
           description: Assurance that the lender has consented to remove the charge
   
-    
     ValidationIssue:
       required:
         - message
+        - issue_code
         - property_name
       type: object
       properties:
+        issue_code:
+          type: string
+          description: A code identifying the type of issue that occurred. This allows integrating APIs to try to resolve the issue automatically.
         message:
           type: string
           description: A message summarising why this property failed to validate.
@@ -861,24 +910,11 @@ components:
             - type: object
       description: |
         Represents a single issue encountered while validating a property on a request body.
-  
-    ValidationResponse:
-      type: object
-      required:
-        - status
-      description: The result of a validation check on an application.
-      properties:
-        status:
-          maximum: 599
-          minimum: 200
-          type: integer
-          description: The HTTP status code returned by the server with this response.
-          format: int32
     
     ValidationSuccess:
+      type: object
       required:
         - property_name
-      type: object
       properties:
         property_name:
           type: string
@@ -898,49 +934,51 @@ components:
         Represents a single property that passed validation on a request body.
 
     ValidationErrorResponse:
-      allOf:
-        - $ref: '#/components/schemas/ValidationResponse'
-        - required:
-          - error_code
-          - error_message
-          - validation_issues
-          type: object
-          properties:
-            error_code:
-              type: string
-              description: An error code  that identifies the cause of the error.
-            error_message:
-              type: string
-              description: A human-readable message that provides a summary of the cause of the error.
-            title:
-                $ref: '#/components/schemas/Title'
-            validation_successes:
-              type: array
-              items:
-                $ref: '#/components/schemas/ValidationSuccess'
-            validation_issues:
-              type: array
-              items:
-                $ref: '#/components/schemas/ValidationIssue'
-          description: |
-            Returned when a request body contains invalid property values.
+      required:
+        - error_message
+        - validation_issues
+        - status
+      type: object
+      properties:
+        status:
+          maximum: 599
+          minimum: 400
+          description: The HTTP status code returned by the server with this response.
+          type: integer
+          format: int32
+        error_message:
+          type: string
+          description: A human-readable message that provides a summary of the cause of the error.
+        title:
+            $ref: '#/components/schemas/Title'
+        applications:
+          type: array
+          items: 
+            $ref: '#/components/schemas/ApplicationRequestResponse'
+      description: |
+        Returned when a request body contains invalid property values.
             
     ValidationSuccessResponse:
-      allOf:
-        - $ref: '#/components/schemas/ValidationResponse'
-        - required:
-          - title
-          - validation_successes
-          type: object
-          properties:
-            title:
-              $ref: '#/components/schemas/Title'
-            validation_successes:
-              type: array
-              items:
-                $ref: '#/components/schemas/ValidationSuccess'
-          description: |
-            Returned when a request body contains valid property values.
+      required:
+        - title
+        - validation_successes
+        - status
+      type: object
+      properties:
+        status:
+          maximum: 202
+          minimum: 200
+          description: The HTTP status code returned by the server with this response.
+          type: integer
+          format: int32
+        title:
+          $ref: '#/components/schemas/Title'
+        applications:
+          type: array
+          items: 
+            $ref: '#/components/schemas/ApplicationRequestResponse'
+      description: |
+        Returned when a request body contains valid property values.
       
 paths:
   /applications/draft:
@@ -952,7 +990,15 @@ paths:
         content:
           application/json: 
             schema:
-              $ref: '#/components/schemas/TransferRequest'
+              anyOf:
+                - $ref: '#/components/schemas/TransferRequest'
+                - $ref: '#/components/schemas/ChargeRequest'
+              discriminator:
+                propertyName: application_type
+                mapping:
+                  transfer of whole: '#/components/schemas/TransferRequest'
+                  creation of new charge: '#/components/schemas/ChargeRequest'
+
       responses:
         '200':
           description: The drafted application passed validation. A topic for the title already exists.
@@ -992,7 +1038,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransferRequest'
+              anyOf:
+                - $ref: '#/components/schemas/TransferRequest'
+                - $ref: '#/components/schemas/ChargeRequest'
+              discriminator:
+                propertyName: application_type
+                mapping:
+                  transfer of whole: '#/components/schemas/TransferRequest'
+                  creation of new charge: '#/components/schemas/ChargeRequest'
       responses:
         '200':
           description: Confirmation that the application passed HMLR vaildation
@@ -1015,7 +1068,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransferRequest'
+              anyOf:
+                - $ref: '#/components/schemas/TransferRequest'
+                - $ref: '#/components/schemas/ChargeRequest'
+              discriminator:
+                propertyName: application_type
+                mapping:
+                  transfer of whole: '#/components/schemas/TransferRequest'
+                  creation of new charge: '#/components/schemas/ChargeRequest'
       responses:
         '202':
           description: Confirmation that the application passed HMLR validation and has been accepted. 

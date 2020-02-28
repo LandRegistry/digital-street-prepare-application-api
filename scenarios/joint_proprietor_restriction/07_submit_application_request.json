@@ -1,70 +1,121 @@
-{
-    "application_types": [
-        "Transfer of Whole",
-        "Creation of New Charge"
-    ],
-    "consideration": {
-        "consideration_type": "Transfer for value",
-        "currency": "GBP",
-        "amount": 150000
-    },
-    "execution": true,
-    "title_number": "AGL117262",
-    "transferrees": [
-        {
-            "proprietor_type": "private individual",
-            "sequence": 1,
-            "name": "Mr Jack Oliver Thompson",
-            "title": "Mr",
-            "fore_names": "Jack Oliver",
-            "surname": "Thompson",
-            "addresses": [
-                {
-                  "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
-                  "legacy_addr_id": "2019-11-18 12.52.12.555232"
-                }
-            ]
-        }, 
-        {
-            "proprietor_type": "private individual",
-            "sequence": 2,
-            "name": "Mrs Charlotte Rebecca Thompson",
-            "title": "Mrs",
-            "fore_names": "Charlotte Rebecca",
-            "surname": "Thompson",
-            "addresses": [
-                {
-                  "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
-                  "legacy_addr_id": "2019-11-18 12.52.12.555232"
-                }
-            ]
-        }
-    ],
-    "transfer_date": "2020-03-03",
-    "transferors": [
-        {
-            "proprietor_type": "private individual",
-            "sequence": 1,
-            "name": "Mrs Sarah Louise Smith OBE",
-            "title": "Mrs",
-            "fore_names": "Sarah Louise",
-            "surname": "Smith",
-            "decor": "OBE",
-            "legacy_name_id": "2019-11-18 12.52.12.555232"
+[
+    {
+        "title_number": "AGL117262",
+        "application_type": "transfer of whole",
+        "consideration": {
+            "consideration_type": "Transfer for value",
+            "currency": "GBP",
+            "amount": 150000
         },
-        {
-            "notice_of_death": {
-                "deceased": {
-                    "proprietor_type": "private individual",
-                    "name": "Mr Paul Andrew Smith",
-                    "sequence": 2
+        "declaration_of_trust": {
+            "trust_type": "tenants in common in equal shares"
+        },
+        "execution": true,
+        "guarantee": {
+            "guarantee_type": "full title guarantee"
+        },
+        
+        "transferrees": [
+            {
+                "proprietor_type": "private individual",
+                "sequence": 1,
+                "name": "Mr Jack Oliver Thompson",
+                "title": "Mr",
+                "fore_names": "Jack Oliver",
+                "surname": "Thompson",
+                "addresses": [
+                    {
+                    "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                    "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                    }
+                ]
+            }, 
+            {
+                "proprietor_type": "private individual",
+                "sequence": 2,
+                "name": "Mrs Charlotte Rebecca Thompson",
+                "title": "Mrs",
+                "fore_names": "Charlotte Rebecca",
+                "surname": "Thompson",
+                "addresses": [
+                    {
+                    "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                    "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                    }
+                ]
+            }
+        ],
+        "transfer_date": "2020-03-03",
+        "transferors": [
+            {
+                "proprietor_type": "private individual",
+                "sequence": 1,
+                "name": "Mrs Sarah Louise Smith OBE",
+                "title": "Mrs",
+                "fore_names": "Sarah Louise",
+                "surname": "Smith",
+                "decor": "OBE",
+                "legacy_name_id": "2019-11-18 12.52.12.555232"
+            },
+            {
+                "notice_of_death": {
+                    "deceased": {
+                        "proprietor_type": "private individual",
+                        "name": "Mr Paul Andrew Smith",
+                        "sequence": 2
+                    },
+                    "evidence": {
+                        "evidence_type": "DeathCertificate",
+                        "certificate": "bytes" 
+                    }
                 },
-                "evidence": {
-                    "evidence_type": "DeathCertificate",
-                    "certificate": "bytes" 
+                "trustee": {
+                    "proprietor_type": "private individual",
+                    "name": "Mr Peter Alexander Smith",
+                    "sequence": 3
                 }
             }
-        }
-    ],
-    "sdlt_transaction_ref": "ABCD1234"
-}
+        ],
+        "sdlt_transaction_ref": "ABCD1234"
+    },
+    {
+        "title_number": "AGL117262",
+        "application_type": "creation of new charge",
+        "borrowers": [
+            {
+                "proprietor_type": "private individual",
+                "sequence": 1,
+                "name": "Mr Jack Oliver Thompson",
+                "title": "Mr",
+                "fore_names": "Jack Oliver",
+                "surname": "Thompson",
+                "addresses": [
+                    {
+                    "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                    "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                    }
+                ]
+            }, 
+            {
+                "proprietor_type": "private individual",
+                "sequence": 2,
+                "name": "Mrs Charlotte Rebecca Thompson",
+                "title": "Mrs",
+                "fore_names": "Charlotte Rebecca",
+                "surname": "Thompson",
+                "addresses": [
+                    {
+                    "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                    "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                    }
+                ]
+            }
+        ],
+        "lender": {
+            "proprietor_type": "organisation",
+            "organisation_type": "limited company or public limited company",
+            "name": "Halifax PLC"
+        },
+        "title_guarantee": "full title guarantee"
+    }
+]
