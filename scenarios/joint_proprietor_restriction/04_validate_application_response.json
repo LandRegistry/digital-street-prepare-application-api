@@ -18,10 +18,10 @@
       "caution_against_first_registration": true,
       "continuation_title_number": "AGL117262",
       "previous_title_number": "AGL117262",
-      "estate_interest": "estate in land",
+      "estate_interest": "estate_in_land",
       "entries": [
         {
-          "sub_register_code": "A",
+          "sub_register_code": "a",
           "sub_register_sequence": 1,
           "schedule": null,
           "entry_sequence": 1,
@@ -47,7 +47,7 @@
       ],
       "proprietors": [
         {
-          "proprietor_type": "private individual",
+          "proprietor_type": "private_individual",
           "sequence": 1,
           "name": "Mrs Sarah Louise Smith OBE",
           "title": "Mrs",
@@ -65,7 +65,7 @@
           ]
         },
         {
-            "proprietor_type": "private individual",
+            "proprietor_type": "private_individual",
             "sequence": 1,
             "name": "Mr Paul Andrew Smith",
             "title": "Mr",
@@ -85,7 +85,7 @@
     },
     "applications": [
       {
-        "application_type": "transfer of whole",
+        "application_type": "transfer_of_whole",
         "validation_successes": [
           {
             "property_name": "title_number",
@@ -94,7 +94,7 @@
           {
             "property_name": "transferrees",
             "value": [{
-                "proprietor_type": "private individual",
+                "proprietor_type": "private_individual",
                 "sequence": 1,
                 "name": "Mr Jack Oliver Thompson",
                 "title": "Mr",
@@ -107,7 +107,7 @@
                     }
             ]}, 
             {
-                "proprietor_type": "private individual",
+                "proprietor_type": "private_individual",
                 "sequence": 2,
                 "name": "Mrs Charlotte Rebecca Thompson",
                 "title": "Mrs",
@@ -124,13 +124,13 @@
           {
             "property_name": "guarantee",
             "value": {
-              "guarantee_type": "full title guarantee"
+              "guarantee_type": "full_title_guarantee"
             }
           },
           {
             "property_name": "delcaration_of_trust",
             "value": {
-              "trust_type": "tenants in common in equal shares"
+              "trust_type": "tenants_in_common_in_equal_shares"
             }
           }
         ],
@@ -141,7 +141,7 @@
             "message": "A trustee must be provided in addition to the NoticeOfDeath.",
             "value": [
                 {
-                    "proprietor_type": "private individual",
+                    "proprietor_type": "private_individual",
                     "sequence": 1,
                     "name": "Mrs Sarah Louise Smith OBE",
                     "title": "Mrs",
@@ -161,7 +161,7 @@
                 {
                   "notice_of_death": {
                     "deceased": {
-                        "proprietor_type": "private individual",
+                        "proprietor_type": "private_individual",
                         "name": "Mr Paul Andrew Smith",
                         "sequence": 2
                     },
@@ -191,7 +191,7 @@
         ]
       },
       {
-        "application_type": "creation of new charge",
+        "application_type": "creation_of_new_charge",
         "validation_successes": [
           {
             "property_name": "title_number",
@@ -201,7 +201,7 @@
             "property_name": "borrowers",
             "value": [
               {
-                  "proprietor_type": "private individual",
+                  "proprietor_type": "private_individual",
                   "sequence": 1,
                   "name": "Mr Jack Oliver Thompson",
                   "title": "Mr",
@@ -215,7 +215,7 @@
                   ]
               }, 
               {
-                  "proprietor_type": "private individual",
+                  "proprietor_type": "private_individual",
                   "sequence": 2,
                   "name": "Mrs Charlotte Rebecca Thompson",
                   "title": "Mrs",
@@ -233,13 +233,13 @@
             "property_name": "lender",
             "value": {
               "proprietor_type": "organisation",
-              "organisation_type": "limited company or public limited company",
+              "organisation_type": "limited_company_or_public_limited_company",
               "name": "Halifax PLC"
             }
           },
           {
             "property_name": "title_guarantee",
-            "value": "full title guarantee"
+            "value": "full_title_guarantee"
           }
         ],
         "validation_issues": []

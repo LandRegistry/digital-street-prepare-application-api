@@ -21,10 +21,10 @@
     "caution_against_first_registration": true,
     "continuation_title_number": "AGL117262",
     "previous_title_number": "AGL117262",
-    "estate_interest": "estate in land",
+    "estate_interest": "estate_in_land",
     "entries": [
       {
-        "sub_register_code": "A",
+        "sub_register_code": "a",
         "sub_register_sequence": 1,
         "schedule": null,
         "entry_sequence": 1,
@@ -50,7 +50,7 @@
     ],
     "proprietors": [
       {
-        "proprietor_type": "private individual",
+        "proprietor_type": "private_individual",
         "sequence": 1,
         "name": "Mrs Sarah Louise Smith OBE",
         "title": "Mrs",
@@ -68,7 +68,7 @@
         ]
       },
       {
-          "proprietor_type": "private individual",
+          "proprietor_type": "private_individual",
           "sequence": 1,
           "name": "Mr Paul Andrew Smith",
           "title": "Mr",

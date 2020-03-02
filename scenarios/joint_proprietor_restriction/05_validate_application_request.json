@@ -1,23 +1,23 @@
 [
     {
         "title_number": "AGL117262",
-        "application_type": "transfer of whole",
+        "application_type": "transfer_of_whole",
         "consideration": {
-            "consideration_type": "Transfer for value",
-            "currency": "GBP",
+            "consideration_type": "transfer_for_value",
+            "currency": "gbp",
             "amount": 150000
         },
         "declaration_of_trust": {
-            "trust_type": "tenants in common in equal shares"
+            "trust_type": "tenants_in_common_in_equal_shares"
         },
         "execution": true,
         "guarantee": {
-            "guarantee_type": "full title guarantee"
+            "guarantee_type": "full_title_guarantee"
         },
         
         "transferrees": [
             {
-                "proprietor_type": "private individual",
+                "proprietor_type": "private_individual",
                 "sequence": 1,
                 "name": "Mr Jack Oliver Thompson",
                 "title": "Mr",
@@ -31,7 +31,7 @@
                 ]
             }, 
             {
-                "proprietor_type": "private individual",
+                "proprietor_type": "private_individual",
                 "sequence": 2,
                 "name": "Mrs Charlotte Rebecca Thompson",
                 "title": "Mrs",
@@ -48,7 +48,7 @@
         "transfer_date": "2020-03-03",
         "transferors": [
             {
-                "proprietor_type": "private individual",
+                "proprietor_type": "private_individual",
                 "sequence": 1,
                 "name": "Mrs Sarah Louise Smith OBE",
                 "title": "Mrs",
@@ -60,7 +60,7 @@
             {
                 "notice_of_death": {
                     "deceased": {
-                        "proprietor_type": "private individual",
+                        "proprietor_type": "private_individual",
                         "name": "Mr Paul Andrew Smith",
                         "sequence": 2
                     },
@@ -70,7 +70,7 @@
                     }
                 },
                 "trustee": {
-                    "proprietor_type": "private individual",
+                    "proprietor_type": "private_individual",
                     "name": "Mr Peter Alexander Smith",
                     "sequence": 3
                 }
@@ -80,10 +80,10 @@
     },
     {
         "title_number": "AGL117262",
-        "application_type": "creation of new charge",
+        "application_type": "creation_of_new_charge",
         "borrowers": [
             {
-                "proprietor_type": "private individual",
+                "proprietor_type": "private_individual",
                 "sequence": 1,
                 "name": "Mr Jack Oliver Thompson",
                 "title": "Mr",
@@ -97,7 +97,7 @@
                 ]
             }, 
             {
-                "proprietor_type": "private individual",
+                "proprietor_type": "private_individual",
                 "sequence": 2,
                 "name": "Mrs Charlotte Rebecca Thompson",
                 "title": "Mrs",
@@ -113,9 +113,11 @@
         ],
         "lender": {
             "proprietor_type": "organisation",
-            "organisation_type": "limited company or public limited company",
+            "organisation_type": "limited_company_or_public_limited_company",
             "name": "Halifax PLC"
         },
-        "title_guarantee": "full title guarantee"
+        "title_guarantee": {
+    	    "guarantee_type": "full_title_guarantee"
+        }
     }
 ]

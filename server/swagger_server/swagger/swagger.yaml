@@ -1,69 +1,190 @@
 openapi: 3.0.1
 info:
   title: Application API
-  version: 0.0.1
   description: |
     API providing title information to prepare an application to change the register.
 
     NOTE: this API definition assumes that **the user is a conveyancer** acting on behalf of an applicant to change the register
-  
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /applications/draft:
+    post:
+      description: Draft a new application and optionally create a new notification
+        topic for the title
+      operationId: applications_draft_post
+      requestBody:
+        description: Details of the application to draft.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                discriminator:
+                  propertyName: application_type
+                  mapping:
+                    transfer_of_whole: '#/components/schemas/TransferRequest'
+                    creation_of_new_charge: '#/components/schemas/ChargeRequest'
+                anyOf:
+                - $ref: '#/components/schemas/TransferRequest'
+                - $ref: '#/components/schemas/ChargeRequest'
+        required: true
+      responses:
+        "200":
+          description: The drafted application passed validation. A topic for the
+            title already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationSuccessResponse'
+        "201":
+          description: The drafted application passed validation. A topic was created
+            for the title.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201'
+        "400":
+          description: The drafted application failed validation. A topic was created
+            or already exists for the title.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        "404":
+          description: An invalid title number was supplied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /applications/validate:
+    put:
+      description: Validate an application before submission.
+      operationId: applications_validate_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                discriminator:
+                  propertyName: application_type
+                  mapping:
+                    transfer_of_whole: '#/components/schemas/TransferRequest'
+                    creation_of_new_charge: '#/components/schemas/ChargeRequest'
+                anyOf:
+                - $ref: '#/components/schemas/TransferRequest'
+                - $ref: '#/components/schemas/ChargeRequest'
+        required: true
+      responses:
+        "200":
+          description: Confirmation that the application passed HMLR vaildation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationSuccessResponse'
+        "400":
+          description: A summary of the outstanding assurances required for an application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /applications/submit:
+    post:
+      description: Validate and submit an application to change the register
+      operationId: applications_submit_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                discriminator:
+                  propertyName: application_type
+                  mapping:
+                    transfer_of_whole: '#/components/schemas/TransferRequest'
+                    creation_of_new_charge: '#/components/schemas/ChargeRequest'
+                anyOf:
+                - $ref: '#/components/schemas/TransferRequest'
+                - $ref: '#/components/schemas/ChargeRequest'
+        required: true
+      responses:
+        "202":
+          description: Confirmation that the application passed HMLR validation and
+            has been accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitApplicationResponse'
+        "400":
+          description: A summary of the outstanding assurances required for an application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+      x-openapi-router-controller: swagger_server.controllers.default_controller
 components:
   schemas:
-  
     Address:
-      type: object
-      description: Represents an address on the register. This may be from an A1 entry or a schedule.
       required:
-        - description
-        - legacy_addr_id
+      - description
+      - legacy_addr_id
+      type: object
       properties:
         description:
           type: string
-          description: Full description of the address with its constituent parts combined.
+          description: Full description of the address with its constituent parts
+            combined.
           example: 123 Smith Street, Plymouth (PL1 2AB)
         type:
           type: string
           description: The type of address.
           enum:
-            - uk
-            - foreign
-            - bfpo
-            - dx
-            - electronic
-            - unknown
+          - uk
+          - foreign
+          - bfpo
+          - dx
+          - electronic
+          - unknown
         legacy_addr_id:
           type: string
           description: The legacy identifier for the address.
           example: 2019-11-18 12.52.12.555232
-          
+      description: Represents an address on the register. This may be from an A1 entry
+        or a schedule.
+      example:
+        description: 123 Smith Street, Plymouth (PL1 2AB)
+        legacy_addr_id: 2019-11-18 12.52.12.555232
+        type: uk
     ApplicationReference:
       type: string
       description: |
         The Application Barcode Reference (ABR) of the latest application to make a substantive change to the register
         for this title.
       example: BADD31A
-  
     ApplicationRequest:
-      type: object
-      description: The base values required for an application request
       required:
-        - title_number
+      - title_number
+      type: object
       properties:
         title_number:
           $ref: '#/components/schemas/TitleNumber'
-
+      description: The base values required for an application request
     ApplicationRequestResponse:
+      required:
+      - application_type
+      - validation_issues
+      - validation_successes
       type: object
-      required: 
-        - application_type
-        - validation_issues
-        - validation_successes
       properties:
         application_type:
           type: string
           enum:
-            - transfer_of_whole
-            - creation_of_new_charge
+          - transfer_of_whole
+          - creation_of_new_charge
         validation_issues:
           type: array
           items:
@@ -72,22 +193,35 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ValidationSuccess'
-        
+      example:
+        application_type: transfer_of_whole
+        validation_successes:
+        - value: AGL117262
+          property_name: title_number
+        - value: AGL117262
+          property_name: title_number
+        validation_issues:
+        - issue_code: issue_code
+          message: A title does not exist for the given title number
+          value: AGL117262
+          property_name: title_number
+        - issue_code: issue_code
+          message: A title does not exist for the given title number
+          value: AGL117262
+          property_name: title_number
     AssuranceOfDeath:
       type: boolean
-      description: By providing this field, you are assuring the death of the named proprietor. **NOTE - This field only be provided by conveyancers**
-    
+      description: By providing this field, you are assuring the death of the named
+        proprietor. **NOTE - This field only be provided by conveyancers**
     ChargeRequest:
-      type: object
       required:
-        - application_type 
-      allOf:
-        - $ref: '#/components/schemas/ApplicationRequest'
+      - application_type
+      type: object
       properties:
-        application_type: 
+        application_type:
           type: string
           enum:
-            - creation_of_new_charge
+          - creation_of_new_charge
         borrowers:
           type: array
           items:
@@ -95,28 +229,19 @@ components:
         lender:
           $ref: '#/components/schemas/Organisation'
         title_guarantee:
-          type: object
-          required:
-            - guarantee_type
-          properties:
-            guarantee_type:
-              type: string
-              enum:
-                - full_title_guarantee
-                - limited_title_guarantee
-            modifications:
-              type: string
+          $ref: '#/components/schemas/ChargeRequest_title_guarantee'
         additional_provisions:
           type: array
           items:
             oneOf:
-              - type: string
-              - type: number
-              - type: integer
-              - type: boolean
-              - type: array
-              - type: object
-
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array
+            - type: object
+      allOf:
+      - $ref: '#/components/schemas/ApplicationRequest'
     ClassOfTitle:
       type: string
       description: |-
@@ -148,14 +273,12 @@ components:
 
         - `possessory`: A *possessory title* is conferred to the proprietor(s) when proprietorship is claimed by right of adverse
           possession or when no documentation can be provided asserting the title.
-
       example: absolute
       enum:
-        - absolute
-        - good
-        - qualified
-        - possessory
-
+      - absolute
+      - good
+      - qualified
+      - possessory
     CommonholdType:
       type: string
       description: |
@@ -163,26 +286,26 @@ components:
         commonhold is that of a ‘common parts title’ or ‘common unit title’.
       example: part
       enum:
-        - part
-        - unit
-    
+      - part
+      - unit
     DeclarationOfTrust:
+      required:
+      - trust_type
       type: object
-      description: Where the transferee is more than one person, provide a declaration of trust
-      required: 
-        - trust_type
       properties:
         trust_type:
           type: string
-          description: The type of trust 
+          description: The type of trust
           enum:
-            - joint_tenants
-            - tenants_in_common_in_equal_shares
-            - held_on_trust
+          - joint_tenants
+          - tenants_in_common_in_equal_shares
+          - held_on_trust
         trust_details:
           type: string
-          description:  The details of the trust or of the trust instrument. Only required if trust_type is 'held_on_trust' 
-    
+          description: The details of the trust or of the trust instrument. Only required
+            if trust_type is 'held_on_trust'
+      description: Where the transferee is more than one person, provide a declaration
+        of trust
     EstateInterest:
       type: string
       description: |-
@@ -252,14 +375,12 @@ components:
           their repayments).
 
           A rentcharge is *terminable* if it is only applicable for a fixed term; otherwise, it is *perpetual*.
-
       example: estate_in_land
       enum:
-        - estate_in_land
+      - estate_in_land
     Execution:
       type: boolean
       description: Assurance that the deed has been executed
-    
     Language:
       type: string
       description: |
@@ -267,39 +388,38 @@ components:
         [ISO 639-3 standard](https://iso639-3.sil.org/code_tables/639/data).
       example: eng
       enum:
-        - eng
-        - cym
-    
+      - eng
+      - cym
     NoticeOfDeath:
-      type: object
       required:
-        - deceased
-        - assurance_of_death
+      - assurance_of_death
+      - deceased
+      type: object
       properties:
         deceased:
           $ref: '#/components/schemas/PrivateIndividual'
         assurance_of_death:
-          $ref: '#/components/schemas/AssuranceOfDeath' 
-
+          $ref: '#/components/schemas/AssuranceOfDeath'
     Organisation:
       required:
-        - proprietor_type
-        - name
-        - organisation_type
+      - name
+      - organisation_type
+      - proprietor_type
       properties:
         proprietor_type:
           type: string
-          description: Coarse classification of a proprietor. Used to easily distinguish between a private individual and an organisation.
+          description: Coarse classification of a proprietor. Used to easily distinguish
+            between a private individual and an organisation.
           enum:
-            - organisation
+          - organisation
         organisation_type:
           type: string
           description: Fine-grained classification of an organisation
           enum:
-            - county_council
-            - limited_company_or_public_limited_company
-            - limited_liability_partnership
-            - local_authority
+          - county_council
+          - limited_company_or_public_limited_company
+          - limited_liability_partnership
+          - local_authority
         sequence:
           minimum: 1
           type: integer
@@ -308,21 +428,22 @@ components:
           example: 2
         name:
           type: string
-          description: Name of the organisation. If it's a charity, the charity name will appear here.
+          description: Name of the organisation. If it's a charity, the charity name
+            will appear here.
           example: Acme inc.
         company_registration_number:
-          example: 09579244
+          type: string
           description: |
             Number which is a unique identifier assigned to a company when it is registered at companies house.
             Although the name of the company may change, the company registration number will remain the same.
-          type: string
+          example: "09579244"
         location:
           type: string
           enum:
-            - england_or_wales
-            - scotland
-            - northern_ireland
-            - overseas
+          - england_or_wales
+          - scotland
+          - northern_ireland
+          - overseas
         legacy_name_id:
           type: string
           example: 2019-11-18 12.52.12.555232
@@ -333,18 +454,18 @@ components:
             May be the same address as other proprietors present on the title.
           items:
             $ref: '#/components/schemas/ProprietorAddress'
-    
     PrivateIndividual:
       required:
-        - proprietor_type
-        - name
-        - sequence
+      - name
+      - proprietor_type
+      - sequence
       properties:
         proprietor_type:
           type: string
-          description: Coarse classification of a proprietor. Used to easily distinguish between a private individual and an organisation.
+          description: Coarse classification of a proprietor. Used to easily distinguish
+            between a private individual and an organisation.
           enum:
-            - private_individual
+          - private_individual
         sequence:
           minimum: 1
           type: integer
@@ -366,7 +487,10 @@ components:
           example: Smith
         decor:
           type: string
-          description: Text which contains the details of any decoration and/or title held by a private individual. e.g. 'OBE','GC', 'KCMG'. For those private individuals holding titles such as 'Duke of ...', 'Lord' etc., the particulars of such titles will be held in this field.
+          description: Text which contains the details of any decoration and/or title
+            held by a private individual. e.g. 'OBE','GC', 'KCMG'. For those private
+            individuals holding titles such as 'Duke of ...', 'Lord' etc., the particulars
+            of such titles will be held in this field.
           example: OBE
         legacy_name_id:
           type: string
@@ -375,10 +499,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProprietorAddress'
-    
     Property:
       type: object
-      description: Represents a property on the title.
       properties:
         sequence:
           minimum: 1
@@ -391,41 +513,48 @@ components:
           example: 1
         address:
           $ref: '#/components/schemas/Address'
-
+      description: Represents a property on the title.
+      example:
+        sequence: 1
+        address:
+          description: 123 Smith Street, Plymouth (PL1 2AB)
+          legacy_addr_id: 2019-11-18 12.52.12.555232
+          type: uk
     Proprietor:
-      oneOf:
-        - $ref: '#/components/schemas/PrivateIndividual'
-        - $ref: '#/components/schemas/Organisation'
       properties:
         proprietor_type:
           type: string
+      example:
+        proprietor_type: proprietor_type
       discriminator:
         propertyName: proprietor_type
         mapping:
           private_individual: '#/components/schemas/PrivateIndividual'
           organisation: '#/components/schemas/Organisation'
-
+      oneOf:
+      - $ref: '#/components/schemas/PrivateIndividual'
+      - $ref: '#/components/schemas/Organisation'
     ProprietorAddress:
-      type: object
-      description: Represents the address of a proprietor.
       required:
-        - description
-        - legacy_addr_id
+      - description
+      - legacy_addr_id
+      type: object
       properties:
         description:
           type: string
-          description: Full description of the property with its constituent parts combined.
+          description: Full description of the property with its constituent parts
+            combined.
           example: 123 Smith Street, Plymouth (PL1 2AB)
         type:
           type: string
           description: The type of address.
           enum:
-            - uk
-            - foreign
-            - bfpo
-            - dx
-            - electronic
-            - unknown
+          - uk
+          - foreign
+          - bfpo
+          - dx
+          - electronic
+          - unknown
         care_of_name:
           type: string
           description: |
@@ -440,19 +569,20 @@ components:
         sequence:
           minimum: 1
           type: integer
-          description: The position of the address within the context of a single proprietor.
+          description: The position of the address within the context of a single
+            proprietor.
           format: int32
           example: 1
         legacy_addr_id:
           type: string
           description: The legacy identifier for the address.
           example: 2019-11-18 12.52.12.555232
-
+      description: Represents the address of a proprietor.
     RegisterEntry:
       required:
-        - entry_date
-        - legacy_entry_id
-        - language_code
+      - entry_date
+      - language_code
+      - legacy_entry_id
       type: object
       properties:
         sub_register_code:
@@ -460,7 +590,8 @@ components:
         sub_register_sequence:
           minimum: 1
           type: integer
-          description: 'The position of the entry within its sub register (or schedule, if specified).'
+          description: The position of the entry within its sub register (or schedule,
+            if specified).
           format: int32
           example: 1
         schedule:
@@ -474,9 +605,10 @@ components:
         role_code:
           maxLength: 4
           minLength: 4
-          pattern: '^[A-Z]{4}$'
+          pattern: ^[A-Z]{4}$
           type: string
-          description: A four-character code that identifies the role that an entry fulfills within the register.
+          description: A four-character code that identifies the role that an entry
+            fulfills within the register.
           example: OJPR
         entry_date:
           type: string
@@ -487,13 +619,14 @@ components:
         draft_entry_version:
           minimum: 1
           type: integer
-          description: The version number of the entry template used to create this entry.
+          description: The version number of the entry template used to create this
+            entry.
           format: int32
           example: 1
         draft_entry_code:
           maxLength: 5
           minLength: 5
-          pattern: '^[A-Z]{2,5}[0-9]*$'
+          pattern: ^[A-Z]{2,5}[0-9]*$
           type: string
           description: |
             Identifies the *computerised register entry* (CRE) or *computerised search entry* (CSE) that this entry has used
@@ -502,8 +635,8 @@ components:
         legacy_entry_id:
           type: string
           description: |
-           The unique identifier for this entry as used by the legacy database.
-          example: 2017-06-04 04:34:52.817067
+            The unique identifier for this entry as used by the legacy database.
+          example: '{}'
         priority_timestamp:
           type: string
           description: |
@@ -512,12 +645,34 @@ components:
         entry_text:
           type: string
           description: Full entry text as shown on the register.
-          example: No disposition by a sole proprietor of the registered estate (except a trust corporation) under which capital money arises is to be registered unless authorised by an order of the court.
+          example: No disposition by a sole proprietor of the registered estate (except
+            a trust corporation) under which capital money arises is to be registered
+            unless authorised by an order of the court.
           x-data-quality:
-            - tag: data_quality_no_entry_text
-              message: The entry text is currently unavailable.
+          - tag: data_quality_no_entry_text
+            message: The entry text is currently unavailable.
       description: |
         Represents an entry on the register for a title.
+      example:
+        schedule:
+          sequence: 1
+          code: l
+          header:
+            eng: Schedule of rentcharges
+            cym: Atodlen rhent-daliadau cofrestredig
+        language_code: eng
+        entry_text: No disposition by a sole proprietor of the registered estate (except
+          a trust corporation) under which capital money arises is to be registered
+          unless authorised by an order of the court.
+        legacy_entry_id: '{}'
+        sub_register_sequence: 1
+        draft_entry_code: BX900
+        role_code: OJPR
+        priority_timestamp: 2000-01-23T04:56:07.000+00:00
+        entry_sequence: 1
+        draft_entry_version: 1
+        sub_register_code: a
+        entry_date: 2000-01-23
     ScheduleCode:
       type: string
       description: |
@@ -541,25 +696,25 @@ components:
         - `z`: the entry is part of the schedule of rentcharges created on transfer of part
       example: l
       enum:
-        - d
-        - f
-        - h
-        - l
-        - m
-        - p
-        - q
-        - r
-        - s
-        - t
-        - w
-        - x
-        - 'y'
-        - z
+      - d
+      - f
+      - h
+      - l
+      - m
+      - p
+      - q
+      - r
+      - s
+      - t
+      - w
+      - x
+      - "y"
+      - z
     ScheduleInfo:
       required:
-        - code
-        - header
-        - sequence
+      - code
+      - header
+      - sequence
       type: object
       properties:
         code:
@@ -580,17 +735,23 @@ components:
             cym: Atodlen rhent-daliadau cofrestredig
       description: |
         Encapsulates information about a schedule entry.
-        
+      example:
+        sequence: 1
+        code: l
+        header:
+          eng: Schedule of rentcharges
+          cym: Atodlen rhent-daliadau cofrestredig
     SubmitApplicationResponse:
-      type: object
       required:
-        - application_reference
-      allOf:
-        - $ref: '#/components/schemas/ValidationSuccessResponse'
+      - application_reference
+      type: object
       properties:
         application_reference:
           $ref: '#/components/schemas/ApplicationReference'
-
+      example:
+        application_reference: BADD31A
+      allOf:
+      - $ref: '#/components/schemas/ValidationSuccessResponse'
     SubRegister:
       type: string
       description: |
@@ -602,9 +763,9 @@ components:
         - `c`: the entry is part of the charges register
       example: a
       enum:
-        - a
-        - b
-        - c
+      - a
+      - b
+      - c
     Tenure:
       type: string
       description: |-
@@ -621,21 +782,20 @@ components:
 
         - `leasehold`: Indicates that this is a leasehold title; i.e. that possessory rights of the property (but not the land) have been
           granted to the proprietor(s) for the duration of the lease agreement with the freeholder(s).
-
       example: freehold
       enum:
-        - freehold
-        - leasehold
+      - freehold
+      - leasehold
     Title:
       required:
-        - application_reference
-        - entries
-        - status
-        - title_number
-        - caution_against_first_registration
-        - pending_applications
-        - properties
-        - proprietors
+      - application_reference
+      - caution_against_first_registration
+      - entries
+      - pending_applications
+      - properties
+      - proprietors
+      - status
+      - title_number
       type: object
       properties:
         title_number:
@@ -668,29 +828,29 @@ components:
             Indicates that the title falls under the Welsh administration area.
           example: false
         caution_against_first_registration:
+          type: boolean
           description: |
             Boolean value stating whether this title is a caution against first registration. Cautions against dealings are excluded since they are purely an application data item.
           example: true
-          type: boolean
         continuation_title_number:
+          maxLength: 9
+          type: string
           description: |
             Title number under which a closed title has been continued.
           example: AGL117262
-          type: string
-          maxLength: 9
         previous_title_number:
+          maxLength: 9
+          type: string
           description: |
             Title number that was previously allocated to a property.
           example: AGL117262
-          type: string
-          maxLength: 9
         commonhold_type:
-          x-force-type: CommonholdType
           oneOf:
-            - $ref: '#/components/schemas/CommonholdType'
+          - $ref: '#/components/schemas/CommonholdType'
+          x-force-type: CommonholdType
           x-data-quality:
-            - tag: data_quality_commonhold_type_invalid
-              message: The commonhold type is invalid.
+          - tag: data_quality_commonhold_type_invalid
+            message: The commonhold type is invalid.
         estate_interest:
           $ref: '#/components/schemas/EstateInterest'
         entries:
@@ -701,9 +861,80 @@ components:
           $ref: '#/components/schemas/TitleProprietors'
       description: |
         Represents a title for land or property.
+      example:
+        title_number: AGL117262
+        previous_title_number: AGL117262
+        application_timestamp: 2000-01-23T04:56:07.000+00:00
+        continuation_title_number: AGL117262
+        caution_against_first_registration: true
+        proprietors:
+        - proprietor_type: proprietor_type
+        - proprietor_type: proprietor_type
+        pending_applications:
+        - BADD31A
+        - BADD31A
+        welsh: false
+        entries:
+        - schedule:
+            sequence: 1
+            code: l
+            header:
+              eng: Schedule of rentcharges
+              cym: Atodlen rhent-daliadau cofrestredig
+          language_code: eng
+          entry_text: No disposition by a sole proprietor of the registered estate
+            (except a trust corporation) under which capital money arises is to be
+            registered unless authorised by an order of the court.
+          legacy_entry_id: '{}'
+          sub_register_sequence: 1
+          draft_entry_code: BX900
+          role_code: OJPR
+          priority_timestamp: 2000-01-23T04:56:07.000+00:00
+          entry_sequence: 1
+          draft_entry_version: 1
+          sub_register_code: a
+          entry_date: 2000-01-23
+        - schedule:
+            sequence: 1
+            code: l
+            header:
+              eng: Schedule of rentcharges
+              cym: Atodlen rhent-daliadau cofrestredig
+          language_code: eng
+          entry_text: No disposition by a sole proprietor of the registered estate
+            (except a trust corporation) under which capital money arises is to be
+            registered unless authorised by an order of the court.
+          legacy_entry_id: '{}'
+          sub_register_sequence: 1
+          draft_entry_code: BX900
+          role_code: OJPR
+          priority_timestamp: 2000-01-23T04:56:07.000+00:00
+          entry_sequence: 1
+          draft_entry_version: 1
+          sub_register_code: a
+          entry_date: 2000-01-23
+        edition_date: 2000-01-23
+        estate_interest: estate_in_land
+        tenure: freehold
+        class_of_title: absolute
+        properties:
+        - sequence: 1
+          address:
+            description: 123 Smith Street, Plymouth (PL1 2AB)
+            legacy_addr_id: 2019-11-18 12.52.12.555232
+            type: uk
+        - sequence: 1
+          address:
+            description: 123 Smith Street, Plymouth (PL1 2AB)
+            legacy_addr_id: 2019-11-18 12.52.12.555232
+            type: uk
+        status:
+          date: 2000-01-23
+          value: open
+        commonhold_type: ""
     TitleNumber:
-      type: string
       maxLength: 9
+      type: string
       description: The unique reference number that refers to this title.
       example: AGL117262
     TitleStatus:
@@ -713,11 +944,11 @@ components:
         An open title is one which is still in effect, whereas a closed title is no longer legally binding.
       example: open
       enum:
-        - open
-        - closed
+      - open
+      - closed
     TitleStatusInfo:
       required:
-        - value
+      - value
       type: object
       properties:
         value:
@@ -729,15 +960,17 @@ components:
           format: date
       description: |
         Encapsulates information related to the status of the title.
-
+      example:
+        date: 2000-01-23
+        value: open
     TitleEntries:
       type: array
       description: The list of current entries on the register for this title.
       items:
         $ref: '#/components/schemas/RegisterEntry'
       x-data-quality:
-        - tag: data_quality_schedule_code_invalid
-          message: Ordering of entries failed due to an invalid schedule code.
+      - tag: data_quality_schedule_code_invalid
+        message: Ordering of entries failed due to an invalid schedule code.
     TitleProperties:
       type: array
       description: |
@@ -750,79 +983,41 @@ components:
       type: array
       description: The ordered list of proprietors relating to this title.
       items:
-          $ref: '#/components/schemas/Proprietor'
+        $ref: '#/components/schemas/Proprietor'
     TopicId:
       type: string
-      description: The unique identifier for the title's topic. This allows the requestor to subscribe to any changes on the title.
+      description: The unique identifier for the title's topic. This allows the requestor
+        to subscribe to any changes on the title.
       example: arn:aws:sns:us-west-2:123456789012:my-topic
-    
     TransferRequest:
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/ApplicationRequest'
-      description: A request to draft a new application to update the register.
       required:
-        - application_type
+      - application_type
+      type: object
       properties:
-        application_type: 
+        application_type:
           type: string
           enum:
-            - transfer_of_whole
+          - transfer_of_whole
         additional_provisions:
-          description: any required or permitted statement, certificate or application and any agreed covenants, declarations and so on.
           type: array
+          description: any required or permitted statement, certificate or application
+            and any agreed covenants, declarations and so on.
           items:
             oneOf:
-              - type: string
-              - type: number
-              - type: integer
-              - type: boolean
-              - type: array
-              - type: object
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array
+            - type: object
         consideration:
-          type: object
-          required:
-            - consideration_type
-          properties:
-            consideration_type:
-              type: string
-              enum:
-               - transfer_for_value
-               - transfer_not_for_value
-               - other_receipt
-            currency:
-              type: string
-              enum:
-                - gbp
-                - eur
-            amount:
-              type: integer
-              format: int32
-              example: 150000
-            other_receipt:
-              type: string
-        
+          $ref: '#/components/schemas/TransferRequest_consideration'
         declaration_of_trust:
           $ref: '#/components/schemas/DeclarationOfTrust'
-
         execution:
           $ref: '#/components/schemas/Execution'
-
         guarantee:
-          type: object
-          description: The type of guarantee provided by the transferor(s)
-          required:
-            - guarantee_type
-          properties:
-            guarantee_type:
-              type: string
-              enum: 
-                - full_title_guarantee
-                - limited_title_guarantee
-            modifications:
-              type: string
-              description: "Any modifications on the title guarantee."
-          
+          $ref: '#/components/schemas/TransferRequest_guarantee'
         transfer_date:
           type: string
           description: The date on which the entry was added to the register.
@@ -835,35 +1030,39 @@ components:
           type: array
           items:
             oneOf:
-              - $ref: '#/components/schemas/PrivateIndividual'
-              - $ref: '#/components/schemas/Organisation'
-              - type: object
-                required:
-                  - notice_of_death
-                  - trustee
-                properties:
-                  notice_of_death:
-                    $ref: '#/components/schemas/NoticeOfDeath' 
-                  trustee:
-                    $ref: '#/components/schemas/PrivateIndividual'
+            - $ref: '#/components/schemas/PrivateIndividual'
+            - $ref: '#/components/schemas/Organisation'
+            - required:
+              - notice_of_death
+              - trustee
+              type: object
+              properties:
+                notice_of_death:
+                  $ref: '#/components/schemas/NoticeOfDeath'
+                trustee:
+                  $ref: '#/components/schemas/PrivateIndividual'
         sdlt_transaction_ref:
           type: string
+          description: The HMRC-provided transaction reference for the completed SDLT
+            payment
           example: ABCD1234
-          description: The HMRC-provided transaction reference for the completed SDLT payment 
         consent_to_discharge:
           type: boolean
           description: Assurance that the lender has consented to remove the charge
-  
+      description: A request to draft a new application to update the register.
+      allOf:
+      - $ref: '#/components/schemas/ApplicationRequest'
     ValidationIssue:
       required:
-        - message
-        - issue_code
-        - property_name
+      - issue_code
+      - message
+      - property_name
       type: object
       properties:
         issue_code:
           type: string
-          description: A code identifying the type of issue that occurred. This allows integrating APIs to try to resolve the issue automatically.
+          description: A code identifying the type of issue that occurred. This allows
+            integrating APIs to try to resolve the issue automatically.
         message:
           type: string
           description: A message summarising why this property failed to validate.
@@ -876,19 +1075,23 @@ components:
           description: The value of the property that passed validation.
           example: AGL117262
           oneOf:
-            - type: string
-            - type: number
-            - type: integer
-            - type: boolean
-            - type: array
-            - type: object
+          - type: string
+          - type: number
+          - type: integer
+          - type: boolean
+          - type: array
+          - type: object
       description: |
         Represents a single issue encountered while validating a property on a request body.
-    
+      example:
+        issue_code: issue_code
+        message: A title does not exist for the given title number
+        value: AGL117262
+        property_name: title_number
     ValidationSuccess:
-      type: object
       required:
-        - property_name
+      - property_name
+      type: object
       properties:
         property_name:
           type: string
@@ -898,172 +1101,218 @@ components:
           description: The value of the property that passed validation.
           example: AGL117262
           oneOf:
-            - type: string
-            - type: number
-            - type: integer
-            - type: boolean
-            - type: array
-            - type: object
+          - type: string
+          - type: number
+          - type: integer
+          - type: boolean
+          - type: array
+          - type: object
       description: |
         Represents a single property that passed validation on a request body.
-
+      example:
+        value: AGL117262
+        property_name: title_number
     ValidationErrorResponse:
       required:
-        - error_message
-        - status
+      - error_message
+      - status
       type: object
       properties:
         status:
           maximum: 599
           minimum: 400
-          description: The HTTP status code returned by the server with this response.
           type: integer
+          description: The HTTP status code returned by the server with this response.
           format: int32
         error_message:
           type: string
-          description: A human-readable message that provides a summary of the cause of the error.
+          description: A human-readable message that provides a summary of the cause
+            of the error.
         title:
-            $ref: '#/components/schemas/Title'
+          $ref: '#/components/schemas/Title'
         applications:
           type: array
-          items: 
+          items:
             $ref: '#/components/schemas/ApplicationRequestResponse'
-      description: |
-        Returned when a request body contains invalid property values.
-            
+      description: "Returned when a request body contains invalid property values.\n\
+        \    \n"
     ValidationSuccessResponse:
       required:
-        - title
-        - status
+      - status
+      - title
       type: object
       properties:
         status:
           maximum: 202
           minimum: 200
-          description: The HTTP status code returned by the server with this response.
           type: integer
+          description: The HTTP status code returned by the server with this response.
           format: int32
         title:
           $ref: '#/components/schemas/Title'
         applications:
           type: array
-          items: 
+          items:
             $ref: '#/components/schemas/ApplicationRequestResponse'
       description: |
         Returned when a request body contains valid property values.
-      
-paths:
-  /applications/draft:
-    post:
-      description: Draft a new application and optionally create a new notification topic for the title
-      requestBody:
-        description: Details of the application to draft.
-        required: true
-        content:
-          application/json: 
-            schema:
-              type: array
-              items:
-                anyOf:
-                  - $ref: '#/components/schemas/TransferRequest'
-                  - $ref: '#/components/schemas/ChargeRequest'
-                discriminator:
-                  propertyName: application_type
-                  mapping:
-                    transfer_of_whole: '#/components/schemas/TransferRequest'
-                    creation_of_new_charge: '#/components/schemas/ChargeRequest'
+      example:
+        title:
+          title_number: AGL117262
+          previous_title_number: AGL117262
+          application_timestamp: 2000-01-23T04:56:07.000+00:00
+          continuation_title_number: AGL117262
+          caution_against_first_registration: true
+          proprietors:
+          - proprietor_type: proprietor_type
+          - proprietor_type: proprietor_type
+          pending_applications:
+          - BADD31A
+          - BADD31A
+          welsh: false
+          entries:
+          - schedule:
+              sequence: 1
+              code: l
+              header:
+                eng: Schedule of rentcharges
+                cym: Atodlen rhent-daliadau cofrestredig
+            language_code: eng
+            entry_text: No disposition by a sole proprietor of the registered estate
+              (except a trust corporation) under which capital money arises is to
+              be registered unless authorised by an order of the court.
+            legacy_entry_id: '{}'
+            sub_register_sequence: 1
+            draft_entry_code: BX900
+            role_code: OJPR
+            priority_timestamp: 2000-01-23T04:56:07.000+00:00
+            entry_sequence: 1
+            draft_entry_version: 1
+            sub_register_code: a
+            entry_date: 2000-01-23
+          - schedule:
+              sequence: 1
+              code: l
+              header:
+                eng: Schedule of rentcharges
+                cym: Atodlen rhent-daliadau cofrestredig
+            language_code: eng
+            entry_text: No disposition by a sole proprietor of the registered estate
+              (except a trust corporation) under which capital money arises is to
+              be registered unless authorised by an order of the court.
+            legacy_entry_id: '{}'
+            sub_register_sequence: 1
+            draft_entry_code: BX900
+            role_code: OJPR
+            priority_timestamp: 2000-01-23T04:56:07.000+00:00
+            entry_sequence: 1
+            draft_entry_version: 1
+            sub_register_code: a
+            entry_date: 2000-01-23
+          edition_date: 2000-01-23
+          estate_interest: estate_in_land
+          tenure: freehold
+          class_of_title: absolute
+          properties:
+          - sequence: 1
+            address:
+              description: 123 Smith Street, Plymouth (PL1 2AB)
+              legacy_addr_id: 2019-11-18 12.52.12.555232
+              type: uk
+          - sequence: 1
+            address:
+              description: 123 Smith Street, Plymouth (PL1 2AB)
+              legacy_addr_id: 2019-11-18 12.52.12.555232
+              type: uk
+          status:
+            date: 2000-01-23
+            value: open
+          commonhold_type: ""
+        status: 200
+        applications:
+        - application_type: transfer_of_whole
+          validation_successes:
+          - value: AGL117262
+            property_name: title_number
+          - value: AGL117262
+            property_name: title_number
+          validation_issues:
+          - issue_code: issue_code
+            message: A title does not exist for the given title number
+            value: AGL117262
+            property_name: title_number
+          - issue_code: issue_code
+            message: A title does not exist for the given title number
+            value: AGL117262
+            property_name: title_number
+        - application_type: transfer_of_whole
+          validation_successes:
+          - value: AGL117262
+            property_name: title_number
+          - value: AGL117262
+            property_name: title_number
+          validation_issues:
+          - issue_code: issue_code
+            message: A title does not exist for the given title number
+            value: AGL117262
+            property_name: title_number
+          - issue_code: issue_code
+            message: A title does not exist for the given title number
+            value: AGL117262
+            property_name: title_number
+    inline_response_201:
+      allOf:
+      - $ref: '#/components/schemas/ValidationSuccessResponse'
+      - type: object
+        properties:
+          topic_id:
+            $ref: '#/components/schemas/TopicId'
+    ChargeRequest_title_guarantee:
+      required:
+      - guarantee_type
+      type: object
+      properties:
+        guarantee_type:
+          type: string
+          enum:
+          - full_title_guarantee
+          - limited_title_guarantee
+        modifications:
+          type: string
+    TransferRequest_consideration:
+      required:
+      - consideration_type
+      type: object
+      properties:
+        consideration_type:
+          type: string
+          enum:
+          - transfer_for_value
+          - transfer_not_for_value
+          - other_receipt
+        currency:
+          type: string
+          enum:
+          - gbp
+          - eur
+        amount:
+          type: integer
+          format: int32
+          example: 150000
+        other_receipt:
+          type: string
+    TransferRequest_guarantee:
+      required:
+      - guarantee_type
+      type: object
+      properties:
+        guarantee_type:
+          type: string
+          enum:
+          - full_title_guarantee
+          - limited_title_guarantee
+        modifications:
+          type: string
+          description: Any modifications on the title guarantee.
+      description: The type of guarantee provided by the transferor(s)
 
-      responses:
-        '200':
-          description: The drafted application passed validation. A topic for the title already exists.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationSuccessResponse'
-        '201':
-          description: The drafted application passed validation. A topic was created for the title. 
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ValidationSuccessResponse'
-                  - type: object
-                    properties:
-                      topic_id:
-                        $ref: '#/components/schemas/TopicId'
-        '400':
-          description: The drafted application failed validation. A topic was created or already exists for the title.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-        '404':
-          description: An invalid title number was supplied.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-          
-  /applications/validate:
-    put:
-      description: Validate an application before submission.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                anyOf:
-                  - $ref: '#/components/schemas/TransferRequest'
-                  - $ref: '#/components/schemas/ChargeRequest'
-                discriminator:
-                  propertyName: application_type
-                  mapping:
-                    transfer_of_whole: '#/components/schemas/TransferRequest'
-                    creation_of_new_charge: '#/components/schemas/ChargeRequest'
-      responses:
-        '200':
-          description: Confirmation that the application passed HMLR vaildation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationSuccessResponse'
-        '400': 
-          description: A summary of the outstanding assurances required for an application.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-
-  /applications/submit:
-    post:
-      description: Validate and submit an application to change the register
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                anyOf:
-                  - $ref: '#/components/schemas/TransferRequest'
-                  - $ref: '#/components/schemas/ChargeRequest'
-                discriminator:
-                  propertyName: application_type
-                  mapping:
-                    transfer_of_whole: '#/components/schemas/TransferRequest'
-                    creation_of_new_charge: '#/components/schemas/ChargeRequest'
-      responses:
-        '202':
-          description: Confirmation that the application passed HMLR validation and has been accepted. 
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubmitApplicationResponse'
-        '400': 
-          description: A summary of the outstanding assurances required for an application.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
