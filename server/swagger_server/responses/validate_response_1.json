@@ -1,0 +1,248 @@
+{
+    "status": 400,
+    "error_code": "LR123",
+    "error_message": "Some application properties failed validation",
+    "title": {
+      "title_number": "AGL117262",
+      "tenure": "freehold",
+      "class_of_title": "absolute",
+      "status": {
+        "value": "open",
+        "date": "2020-02-26"
+      },
+      "edition_date": "2020-02-26",
+      "pending_applications": [],
+      "application_reference": "BADD31A",
+      "application_timestamp": "2020-02-26T09:47:41.453Z",
+      "welsh": false,
+      "caution_against_first_registration": true,
+      "continuation_title_number": "AGL117262",
+      "previous_title_number": "AGL117262",
+      "estate_interest": "estate_in_land",
+      "entries": [
+        {
+          "sub_register_code": "a",
+          "sub_register_sequence": 1,
+          "schedule": null,
+          "entry_sequence": 1,
+          "role_code": "OJPR",
+          "entry_date": "2020-02-26",
+          "language_code": "eng",
+          "draft_entry_version": 1,
+          "draft_entry_code": "BX900",
+          "legacy_entry_id": {},
+          "priority_timestamp": "2020-02-26T09:47:41.453Z",
+          "entry_text": "No disposition by a sole proprietor of the registered estate (except a trust corporation) under which capital money arises is to be registered unless authorised by an order of the court."
+        }
+      ],
+      "properties": [
+        {
+          "sequence": 1,
+          "address": {
+            "description": "123 Smith Street, Plymouth (PL1 2AB)",
+            "type": "uk",
+            "legacy_addr_id": "2019-11-18 12.52.12.555232"
+          }
+        }
+      ],
+      "proprietors": [
+        {
+          "proprietor_type": "private_individual",
+          "sequence": 1,
+          "name": "Mrs Sarah Louise Smith OBE",
+          "title": "Mrs",
+          "fore_names": "Sarah Louise",
+          "surname": "Smith",
+          "decor": "OBE",
+          "legacy_name_id": "2019-11-18 12.52.12.555232",
+          "addresses": [
+            {
+              "description": "123 Smith Street, Plymouth (PL1 2AB)",
+              "type": "uk",
+              "sequence": 1,
+              "legacy_addr_id": "2019-11-18 12.52.12.555232"
+            }
+          ]
+        },
+        {
+            "proprietor_type": "private_individual",
+            "sequence": 1,
+            "name": "Mr Paul Andrew Smith",
+            "title": "Mr",
+            "fore_names": "Paul Andrew",
+            "surname": "Smith",
+            "legacy_name_id": "2019-11-18 12.52.12.555233",
+            "addresses": [
+              {
+                "description": "123 Smith Street, Plymouth (PL1 2AB)",
+                "type": "uk",
+                "sequence": 1,
+                "legacy_addr_id": "2019-11-18 12.52.12.555232"
+              }
+            ]
+          }
+      ]
+    },
+    "applications": [
+      {
+        "application_type": "transfer_of_whole",
+        "validation_successes": [
+          {
+            "property_name": "title_number",
+            "value": "AGL117262"
+          },
+          {
+            "property_name": "transferrees",
+            "value": [{
+                "proprietor_type": "private_individual",
+                "sequence": 1,
+                "name": "Mr Jack Oliver Thompson",
+                "title": "Mr",
+                "fore_names": "Jack Oliver",
+                "surname": "Thompson",
+                "addresses": [
+                    {
+                        "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                        "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                    }
+            ]}, 
+            {
+                "proprietor_type": "private_individual",
+                "sequence": 2,
+                "name": "Mrs Charlotte Rebecca Thompson",
+                "title": "Mrs",
+                "fore_names": "Charlotte Rebecca",
+                "surname": "Thompson",
+                "addresses": [
+                    {
+                    "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                    "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                    }
+                ]
+            }]
+          },
+          {
+            "property_name": "guarantee",
+            "value": {
+              "guarantee_type": "full_title_guarantee"
+            }
+          },
+          {
+            "property_name": "delcaration_of_trust",
+            "value": {
+              "trust_type": "tenants_in_common_in_equal_shares"
+            }
+          }
+        ],
+        "validation_issues": [
+          {
+            "property_name": "transferors",
+            "issue_code": "LR123",
+            "message": "A trustee must be provided in addition to the NoticeOfDeath.",
+            "value": [
+                {
+                    "proprietor_type": "private_individual",
+                    "sequence": 1,
+                    "name": "Mrs Sarah Louise Smith OBE",
+                    "title": "Mrs",
+                    "fore_names": "Sarah Louise",
+                    "surname": "Smith",
+                    "decor": "OBE",
+                    "legacy_name_id": "2019-11-18 12.52.12.555232",
+                    "addresses": [
+                      {
+                        "description": "123 Smith Street, Plymouth (PL1 2AB)",
+                        "type": "uk",
+                        "sequence": 1,
+                        "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                      }
+                    ]
+                },
+                {
+                  "notice_of_death": {
+                    "deceased": {
+                        "proprietor_type": "private_individual",
+                        "name": "Mr Paul Andrew Smith",
+                        "sequence": 2
+                    },
+                    "evidence": {
+                        "evidence_type": "DeathCertificate",
+                        "certificate": "bytes" 
+                    }
+                }
+              }
+            ]
+          },
+          {
+            "property_name": "execution",
+            "issue_code": "LR123",
+            "message": "Value must be provided to submit application"
+          },
+          {
+            "property_name": "transfer_date",
+            "issue_code": "LR123",
+            "message": "Value must be provided to submit application"
+          },
+          {
+            "property_name": "sdlt_transaction_ref",
+            "issue_code": "LR123",
+            "message": "Value must be provided to submit application"
+          }
+        ]
+      },
+      {
+        "application_type": "creation_of_new_charge",
+        "validation_successes": [
+          {
+            "property_name": "title_number",
+            "value": "AGL117262"
+          },
+          {
+            "property_name": "borrowers",
+            "value": [
+              {
+                  "proprietor_type": "private_individual",
+                  "sequence": 1,
+                  "name": "Mr Jack Oliver Thompson",
+                  "title": "Mr",
+                  "fore_names": "Jack Oliver",
+                  "surname": "Thompson",
+                  "addresses": [
+                      {
+                      "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                      "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                      }
+                  ]
+              }, 
+              {
+                  "proprietor_type": "private_individual",
+                  "sequence": 2,
+                  "name": "Mrs Charlotte Rebecca Thompson",
+                  "title": "Mrs",
+                  "fore_names": "Charlotte Rebecca",
+                  "surname": "Thompson",
+                  "addresses": [
+                      {
+                      "description": "456 Jones Avenue, Plymouth (PL2 3CD)",
+                      "legacy_addr_id": "2019-11-18 12.52.12.555232"
+                      }
+                  ]
+              }
+          ]},
+          {
+            "property_name": "lender",
+            "value": {
+              "proprietor_type": "organisation",
+              "organisation_type": "limited_company_or_public_limited_company",
+              "name": "Halifax PLC"
+            }
+          },
+          {
+            "property_name": "title_guarantee",
+            "value": "full_title_guarantee"
+          }
+        ],
+        "validation_issues": []
+      }
+    ]
+  }

@@ -1,5 +1,7 @@
 import connexion
+import json
 import six
+from collections import OrderedDict
 
 from swagger_server.models.inline_response201 import InlineResponse201  # noqa: E501
 from swagger_server.models.object import Object  # noqa: E501
@@ -8,6 +10,14 @@ from swagger_server.models.validation_error_response import ValidationErrorRespo
 from swagger_server.models.validation_success_response import ValidationSuccessResponse  # noqa: E501
 from swagger_server import util
 
+with open('swagger_server/responses/draft_response.json') as json_file:
+    draft_response = json.load(json_file)
+with open('swagger_server/responses/validate_response_1.json') as json_file:
+    validate_response_1 = json.load(json_file)
+with open('swagger_server/responses/validate_response_2.json') as json_file:
+    validate_response_2 = json.load(json_file)
+with open('swagger_server/responses/submit_response.json') as json_file:
+    submit_response = json.load(json_file)
 
 def applications_draft_post(body):  # noqa: E501
     """applications_draft_post
@@ -21,7 +31,8 @@ def applications_draft_post(body):  # noqa: E501
     """
     if connexion.request.is_json:
         body = [Object.from_dict(d) for d in connexion.request.get_json()]  # noqa: E501
-    return 'do some magic!'
+    # return json.dumps(str(draft_response))
+    return draft_response, 400
 
 
 def applications_submit_post(body):  # noqa: E501
@@ -36,7 +47,7 @@ def applications_submit_post(body):  # noqa: E501
     """
     if connexion.request.is_json:
         body = [Object.from_dict(d) for d in connexion.request.get_json()]  # noqa: E501
-    return 'do some magic!'
+    return submit_response, 202
 
 
 def applications_validate_put(body):  # noqa: E501
@@ -51,4 +62,8 @@ def applications_validate_put(body):  # noqa: E501
     """
     if connexion.request.is_json:
         body = [Object.from_dict(d) for d in connexion.request.get_json()]  # noqa: E501
-    return 'do some magic!'
+    if not body[0]['transferors'][1].get('trustee'):
+        return validate_response_1, 400
+    else:
+        return validate_response_2, 200
+    return 'Something went wrong'
