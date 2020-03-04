@@ -909,19 +909,13 @@ components:
 
     ValidationErrorResponse:
       required:
+        - title
         - error_message
-        - status
       type: object
       properties:
-        status:
-          maximum: 599
-          minimum: 400
-          description: The HTTP status code returned by the server with this response.
-          type: integer
-          format: int32
         error_message:
           type: string
-          description: A human-readable message that provides a summary of the cause of the error.
+          description: A human-readable message that provides a summary of the error.
         title:
             $ref: '#/components/schemas/Title'
         applications:
@@ -934,15 +928,8 @@ components:
     ValidationSuccessResponse:
       required:
         - title
-        - status
       type: object
       properties:
-        status:
-          maximum: 202
-          minimum: 200
-          description: The HTTP status code returned by the server with this response.
-          type: integer
-          format: int32
         title:
           $ref: '#/components/schemas/Title'
         applications:
@@ -975,28 +962,18 @@ paths:
 
       responses:
         '200':
-          description: The drafted application passed validation. A topic for the title already exists.
+          description: The request was accepted, the title information and topic ID is returned. The application may or may not have passed validation.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationSuccessResponse'
-        '201':
-          description: The drafted application passed validation. A topic was created for the title. 
-          content:
-            application/json:
-              schema:
-                allOf:
+                oneOf:
                   - $ref: '#/components/schemas/ValidationSuccessResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                allOf:
                   - type: object
                     properties:
                       topic_id:
                         $ref: '#/components/schemas/TopicId'
-        '400':
-          description: The drafted application failed validation. A topic was created or already exists for the title.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
         '404':
           description: An invalid title number was supplied.
           content:

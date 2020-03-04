@@ -34,8 +34,7 @@ def applications_draft_post(body):  # noqa: E501
     """
     if connexion.request.is_json:
         body = [Object.from_dict(d) for d in connexion.request.get_json()]  # noqa: E501
-    # return json.dumps(str(draft_response))
-    return draft_response, 400
+    return draft_response, 200
 
 
 def applications_submit_post(body):  # noqa: E501
@@ -51,7 +50,7 @@ def applications_submit_post(body):  # noqa: E501
     if connexion.request.is_json:
         body = [Object.from_dict(d) for d in connexion.request.get_json()]  # noqa: E501
     try:
-        response = requests.post('http://localhost:5555/AGL117262', headers={"content-type": "application/json"}, data=json.dumps(notification_1))
+        response = requests.post('http://localhost:5555/my-topic', headers={"content-type": "application/json"}, data=json.dumps(notification_1))
         response.raise_for_status()
     except Exception as err:
         print(f'Error occurred: {err}')

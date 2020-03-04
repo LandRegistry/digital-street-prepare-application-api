@@ -1,5 +1,4 @@
 {
-    "status": 400,
     "error_code": "LR123",
     "error_message": "Some application properties failed validation",
     "title": {
@@ -138,7 +137,7 @@
           {
             "property_name": "transferors",
             "issue_code": "LR123",
-            "message": "A trustee must be provided in addition to the NoticeOfDeath.",
+            "message": "A trustee must be provided in addition to the notice of death.",
             "value": [
                 {
                     "proprietor_type": "private_individual",
